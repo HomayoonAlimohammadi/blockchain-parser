@@ -21,17 +21,9 @@ Blockchain Parser is a tool designed to help developers and researchers parse an
 - User-friendly interface
 - Extensible and customizable
 
-
 ## Usage
 
-To use Blockchain Parser, run the following command:
-
-```bash
-go build -o parser ./cmd/parser
-./parser 
-```
-
-For more detailed usage instructions, refer to the [documentation](docs/USAGE.md).
+For detailed usage instructions, refer to the [documentation](docs/USAGE.md).
 
 ## Contributing
 

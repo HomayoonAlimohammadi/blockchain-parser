@@ -14,6 +14,12 @@ type Parser interface {
 
 // Storage interface for storing transactions
 type Storage interface {
+	// AddActiveAddress adds an address to the set of observed addresses
+	AddActiveAddress(address string) error
+	// GetActiveAddresses returns the set of addresses being observed
+	GetActiveAddresses() (map[string]struct{}, error)
+	// RemoveActiveAddress removes an address from the set of observed addresses
+	RemoveActiveAddress(address string) error
 	// GetTransactionsFor returns the transactions for a given address
 	GetTransactionsFor(address string) ([]Transaction, error)
 	// AddTransactionFor adds a transaction for a given address

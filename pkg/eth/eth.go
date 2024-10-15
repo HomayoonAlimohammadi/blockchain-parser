@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/gorilla/websocket"
+
 	"github.com/HomayoonAlimohammadi/blockchain-parser/internal/parser"
 	"github.com/HomayoonAlimohammadi/blockchain-parser/pkg/log"
-	"github.com/gorilla/websocket"
+	wspkg "github.com/HomayoonAlimohammadi/blockchain-parser/pkg/websocket"
 )
 
 // JSON-RPC request structure
@@ -28,6 +30,7 @@ type RPCResponse struct {
 	Result  string `json:"result"`
 }
 
+// RPC caller structure
 type rpcCaller struct {
 	client   *http.Client
 	wsDialer *websocket.Dialer
@@ -49,7 +52,6 @@ func (c *rpcCaller) Subscribe(ctx context.Context, address string) (<-chan parse
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial websocket: %w", err)
 	}
-	defer conn.Close()
 
 	req := RPCRequest{
 		Jsonrpc: rpcVersion,
@@ -68,7 +70,7 @@ func (c *rpcCaller) Subscribe(ctx context.Context, address string) (<-chan parse
 	}
 
 	// First message is the ack with different format
-	if _, _, err = conn.ReadMessage(); err != nil {
+	if _, _, err := conn.ReadMessage(); err != nil {
 		return nil, fmt.Errorf("failed to read ack message: %w", err)
 	}
 
@@ -80,8 +82,13 @@ func (c *rpcCaller) Subscribe(ctx context.Context, address string) (<-chan parse
 	return resChan, nil
 }
 
+// listenForTxn listens for transactions
 func listenForTxn(ctx context.Context, conn *websocket.Conn, resChan chan<- parser.Transaction) {
-	defer close(resChan)
+	defer func() {
+		close(resChan)
+		conn.Close()
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -89,7 +96,10 @@ func listenForTxn(ctx context.Context, conn *websocket.Conn, resChan chan<- pars
 			return
 		default:
 			_, message, err := conn.ReadMessage()
-			if err != nil {
+			if wspkg.IsCloseError(err) {
+				log.Error(err, "connection closed")
+				return
+			} else if err != nil {
 				log.Error(err, "failed to read message")
 			}
 

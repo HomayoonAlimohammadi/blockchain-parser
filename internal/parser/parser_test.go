@@ -39,6 +39,21 @@ func (m *MockStorage) AddTransactionFor(address string, txn Transaction) error {
 	return args.Error(0)
 }
 
+func (m *MockStorage) AddActiveAddress(address string) error {
+	args := m.Called(address)
+	return args.Error(0)
+}
+
+func (m *MockStorage) GetActiveAddresses() (map[string]struct{}, error) {
+	args := m.Called()
+	return args.Get(0).(map[string]struct{}), args.Error(1)
+}
+
+func (m *MockStorage) RemoveActiveAddress(address string) error {
+	args := m.Called(address)
+	return args.Error(0)
+}
+
 func TestGetCurrentBlock(t *testing.T) {
 	ctx := context.Background()
 	mockRPCCaller := new(MockRPCCaller)

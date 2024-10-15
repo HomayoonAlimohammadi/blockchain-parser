@@ -37,12 +37,11 @@ func (a *api) SubscribeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.parser.Subscribe(r.Context(), req.Address); err != nil {
-		JSONResponse(w, http.StatusCreated, "Address subscribed", nil)
-		return
-	} else {
 		JSONError(w, http.StatusInternalServerError, fmt.Errorf("failed to subscribe to address: %w", err), nil)
 		return
 	}
+
+	JSONResponse(w, http.StatusCreated, "Address subscribed", nil)
 }
 
 // GetTransactionsHandler returns transactions for a given address
@@ -59,7 +58,7 @@ func (a *api) GetTransactionsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if transactions == nil {
+	if len(transactions) == 0 {
 		JSONError(w, http.StatusNotFound, fmt.Errorf("no transactions found"), nil)
 		return
 	}
